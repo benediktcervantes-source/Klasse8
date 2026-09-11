@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#ffffff">
+  <title>Distributivgesetz – Übung</title>
+  <style>
+    :root {
+      --bg: #f7f9fc;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #657087;
+      --line: #dfe5ee;
+      --accent: #356ae6;
+      --accent-soft: #edf3ff;
+      --good: #19764a;
+      --good-bg: #eaf8f1;
+      --bad: #a63737;
+      --bad-bg: #fff0f0;
+      --shadow: 0 10px 30px rgba(22, 33, 56, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .wrap {
+      width: min(760px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(26px, 5vw, 40px);
+      line-height: 1.1;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 16px;
+    }
+
+    .score {
+      flex: 0 0 auto;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 5vw, 34px);
+    }
+
+    .level-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .level {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .level.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+      margin-bottom: 8px;
+    }
+
+    .task {
+      text-align: center;
+      font-size: clamp(34px, 8vw, 58px);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin: 20px 0 28px;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    input {
+      width: 100%;
+      min-height: 52px;
+      border: 2px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 20px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    button {
+      min-height: 52px;
+      min-width: 52px;
+      border: 0;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 750;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+      padding: 0 22px;
+    }
+
+    .secondary {
+      background: #eef1f6;
+      color: var(--text);
+      padding: 0 18px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .feedback {
+      min-height: 58px;
+      margin-top: 18px;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      font-size: 17px;
+      line-height: 1.35;
+      visibility: hidden;
+    }
+
+    .feedback.good {
+      visibility: visible;
+      background: var(--good-bg);
+      color: var(--good);
+      border: 1px solid #bfe8d3;
+    }
+
+    .feedback.bad {
+      visibility: visible;
+      background: var(--bad-bg);
+      color: var(--bad);
+      border: 1px solid #f0caca;
+    }
+
+    .hint {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 560px) {
+      .top { flex-direction: column; }
+      .input-row { grid-template-columns: 1fr; }
+      .primary { width: 100%; }
+      .secondary { flex: 1 1 45%; }
+      .card { border-radius: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <div>
+        <h1>Distributivgesetz</h1>
+        <div class="sub">Multipliziere die Klammer aus und vereinfache.</div>
+      </div>
+      <div class="score" id="score">0 / 0 richtig</div>
+    </div>
+
+    <section class="card">
+      <div class="label">Schwierigkeitsstufe</div>
+      <div class="level-row" role="group" aria-label="Schwierigkeitsstufe">
+        <button class="level active" data-level="1">1 · Zahlen</button>
+        <button class="level" data-level="2">2 · Gemischt</button>
+        <button class="level" data-level="3">3 · Variablen</button>
+      </div>
+
+      <div class="label">Aufgabe</div>
+      <div class="task" id="task" aria-live="polite"></div>
+
+      <label class="label" for="answer">Deine Lösung</label>
+      <div class="input-row">
+        <input id="answer" type="text" inputmode="text" autocomplete="off"
+               autocapitalize="off" spellcheck="false"
+               placeholder="z. B. 6x + 12">
+        <button class="primary" id="check">Prüfen</button>
+      </div>
+
+      <div class="actions">
+        <button class="secondary" id="hintBtn">Tipp</button>
+        <button class="secondary" id="solutionBtn">Lösung zeigen</button>
+        <button class="secondary" id="next">Neue Aufgabe</button>
+      </div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+
+      <div class="hint">
+        Eingaben wie <strong>6x+12</strong>, <strong>6*x + 12</strong> oder
+        <strong>12+6x</strong> werden akzeptiert.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const taskEl = document.getElementById('task');
+      const answerEl = document.getElementById('answer');
+      const feedbackEl = document.getElementById('feedback');
+      const scoreEl = document.getElementById('score');
+      const checkBtn = document.getElementById('check');
+      const nextBtn = document.getElementById('next');
+      const hintBtn = document.getElementById('hintBtn');
+      const solutionBtn = document.getElementById('solutionBtn');
+      const levelButtons = [...document.querySelectorAll('.level')];
+
+      let level = 1;
+      let correct = 0;
+      let attempts = 0;
+      let current = null;
+      let alreadyCounted = false;
+
+      const vars = ['x', 'y', 'a', 'b'];
+
+      function randint(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function nonzero(min, max) {
+        let n = 0;
+        while (n === 0) n = randint(min, max);
+        return n;
+      }
+
+      function coefText(c, variable = '') {
+        if (!variable) return String(c);
+        if (c === 1) return variable;
+        if (c === -1) return '-' + variable;
+        return c + variable;
+      }
+
+      function signedTerm(c, variable = '', first = false) {
+        const abs = Math.abs(c);
+        const core = variable ? (abs === 1 ? variable : abs + variable) : String(abs);
+        if (first) return (c < 0 ? '-' : '') + core;
+        return c < 0 ? ' - ' + core : ' + ' + core;
+      }
+
+      function makeTask() {
+        let a, b, c, v1 = '', v2 = '';
+
+        if (level === 1) {
+          a = randint(2, 9);
+          b = randint(2, 12);
+          c = randint(2, 12);
+        } else if (level === 2) {
+          a = randint(2, 8);
+          b = randint(2, 9);
+          c = randint(1, 8);
+          v2 = vars[randint(0, vars.length - 1)];
+        } else {
+          a = nonzero(-6, 6);
+          b = randint(1, 6);
+          c = nonzero(-6, 6);
+          v1 = vars[randint(0, vars.length - 1)];
+          do {
+            v2 = vars[randint(0, vars.length - 1)];
+          } while (v2 === v1 && Math.random() < 0.55);
+        }
+
+        const left = coefText(a, v1);
+        const inside1 = coefText(b, '');
+        const inside2 = signedTerm(c, v2, false);
+        const display = `${left}(${inside1}${inside2})`;
+
+        const terms = [];
+        terms.push({ coef: a * b, vars: v1.split('').sort().join('') });
+        terms.push({ coef: a * c, vars: (v1 + v2).split('').sort().join('') });
+
+        current = { display, terms };
+        taskEl.textContent = display;
+        answerEl.value = '';
+        feedbackEl.className = 'feedback';
+        feedbackEl.textContent = '';
+        alreadyCounted = false;
+        setTimeout(() => answerEl.focus(), 0);
+      }
+
+      function normalize(expr) {
+        expr = expr
+          .toLowerCase()
+          .replace(/[−–—]/g, '-')
+          .replace(/\s+/g, '')
+          .replace(/\*/g, '');
+
+        if (!expr) return null;
+
+        expr = expr.replace(/-/g, '+-');
+        if (expr.startsWith('+-')) expr = expr.slice(1);
+
+        const rawTerms = expr.split('+').filter(Boolean);
+        const map = new Map();
+
+        for (let t of rawTerms) {
+          const m = t.match(/^([+-]?\d*)([a-z]*)$/);
+          if (!m) return null;
+
+          let cText = m[1];
+          let variables = (m[2] || '').split('').sort().join('');
+          let coef;
+
+          if (cText === '' || cText === '+') coef = 1;
+          else if (cText === '-') coef = -1;
+          else coef = Number(cText);
+
+          if (!Number.isFinite(coef)) return null;
+          map.set(variables, (map.get(variables) || 0) + coef);
+        }
+
+        for (const [k, v] of [...map.entries()]) {
+          if (v === 0) map.delete(k);
+        }
+
+        return [...map.entries()]
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([v, c]) => `${c}:${v}`)
+          .join('|');
+      }
+
+      function expectedString() {
+        const map = new Map();
+        for (const t of current.terms) {
+          map.set(t.vars, (map.get(t.vars) || 0) + t.coef);
+        }
+        const arr = [...map.entries()].filter(([, c]) => c !== 0);
+        arr.sort((a, b) => a[0].localeCompare(b[0]));
+
+        let out = '';
+        arr.forEach(([v, c], i) => {
+          const abs = Math.abs(c);
+          const core = v ? (abs === 1 ? v : abs + v) : String(abs);
+          if (i === 0) out += (c < 0 ? '-' : '') + core;
+          else out += c < 0 ? ' - ' + core : ' + ' + core;
+        });
+        return out || '0';
+      }
+
+      function check() {
+        const user = normalize(answerEl.value);
+        if (user === null) {
+          feedbackEl.className = 'feedback bad';
+          feedbackEl.textContent = 'Bitte gib einen vereinfachten Term ein, z. B. 6x + 12.';
+          return;
+        }
+
+        const expected = normalize(expectedString());
+        if (user === expected) {
+          feedbackEl.className = 'feedback good';
+          feedbackEl.textContent = 'Richtig.';
+          if (!alreadyCounted) {
+            correct++;
+            attempts++;
+            alreadyCounted = true;
+            updateScore();
+          }
+        } else {
+          feedbackEl.className = 'feedback bad';
+          feedbackEl.textContent = 'Noch nicht richtig. Prüfe, ob du den Faktor vor der Klammer mit beiden Summanden multipliziert hast.';
+          if (!alreadyCounted) {
+            attempts++;
+            alreadyCounted = true;
+            updateScore();
+          }
+        }
+      }
+
+      function updateScore() {
+        scoreEl.textContent = `${correct} / ${attempts} richtig`;
+      }
+
+      checkBtn.addEventListener('click', check);
+      nextBtn.addEventListener('click', makeTask);
+
+      hintBtn.addEventListener('click', () => {
+        feedbackEl.className = 'feedback';
+        feedbackEl.style.visibility = 'visible';
+        feedbackEl.style.background = 'var(--accent-soft)';
+        feedbackEl.style.color = 'var(--text)';
+        feedbackEl.style.border = '1px solid #cbd8f8';
+        feedbackEl.textContent = 'Tipp: Multipliziere den Faktor vor der Klammer zuerst mit dem ersten und dann mit dem zweiten Term in der Klammer.';
+      });
+
+      solutionBtn.addEventListener('click', () => {
+        feedbackEl.className = 'feedback';
+        feedbackEl.style.visibility = 'visible';
+        feedbackEl.style.background = '#f3f4f7';
+        feedbackEl.style.color = 'var(--text)';
+        feedbackEl.style.border = '1px solid var(--line)';
+        feedbackEl.textContent = 'Lösung: ' + expectedString();
+      });
+
+      answerEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') check();
+      });
+
+      levelButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          level = Number(btn.dataset.level);
+          levelButtons.forEach(b => b.classList.toggle('active', b === btn));
+          makeTask();
+        });
+      });
+
+      makeTask();
+    })();
+  </script>
+</body>
+</html>
