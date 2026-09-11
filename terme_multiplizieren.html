@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Terme vereinfachen</title>
+<style>
+:root{--bg:#f7f9fc;--card:#fff;--text:#172033;--muted:#667085;--line:#dfe5ee;--accent:#356ae6;--soft:#edf3ff;--good:#18784c;--goodbg:#eaf8f1;--bad:#a43a3a;--badbg:#fff0f0}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+.wrap{width:min(760px,calc(100% - 28px));margin:auto;padding:28px 0 48px}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+h1{margin:0;font-size:clamp(28px,5vw,40px)} .sub{color:var(--muted);margin-top:6px}
+.score{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;font-weight:700;white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,5vw,34px);box-shadow:0 10px 30px rgba(22,33,56,.08)}
+.label{color:var(--muted);font-size:14px;font-weight:700;margin-bottom:8px}
+.levels,.actions{display:flex;gap:8px;flex-wrap:wrap}.levels{margin-bottom:26px}
+button{min-height:50px;border:0;border-radius:13px;font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation}
+.level{background:#fff;border:1px solid var(--line);padding:8px 14px}.level.active{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+.task{text-align:center;font-size:clamp(36px,8vw,58px);font-weight:700;min-height:86px;display:flex;align-items:center;justify-content:center;margin:16px 0 24px}
+.row{display:grid;grid-template-columns:1fr auto;gap:10px}
+input{min-height:52px;width:100%;border:2px solid var(--line);border-radius:14px;padding:12px 14px;font-size:20px;outline:none;-webkit-appearance:none}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--soft)}
+.primary{background:var(--accent);color:#fff;padding:0 22px}.secondary{background:#eef1f6;color:var(--text);padding:0 18px}
+.actions{margin-top:12px}.feedback{visibility:hidden;margin-top:18px;min-height:58px;border-radius:14px;padding:14px 16px;display:flex;align-items:center}
+.feedback.good{visibility:visible;background:var(--goodbg);color:var(--good);border:1px solid #bfe8d3}.feedback.bad{visibility:visible;background:var(--badbg);color:var(--bad);border:1px solid #f0caca}
+.tips{margin-top:20px;background:#f6f8fb;border:1px solid var(--line);border-radius:16px;padding:16px 18px;color:var(--muted);line-height:1.5}.tips strong{color:var(--text)}
+@media(max-width:560px){.top{flex-direction:column}.row{grid-template-columns:1fr}.primary{width:100%}.secondary{flex:1 1 45%}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="top">
+  <div><h1>Terme vereinfachen</h1><div class="sub">Multipliziere oder dividiere Zahlen und Variablen.</div></div>
+  <div class="score" id="score">0 / 0 richtig</div>
+</div>
+<section class="card">
+  <div class="label">Schwierigkeitsstufe</div>
+  <div class="levels">
+    <button class="level active" data-level="1">1 · Grundlagen</button>
+    <button class="level" data-level="2">2 · Vorzeichen</button>
+    <button class="level" data-level="3">3 · Potenzen</button>
+  </div>
+  <div class="label">Aufgabe</div>
+  <div class="task" id="task"></div>
+  <label class="label" for="answer">Deine Lösung</label>
+  <div class="row">
+    <input id="answer" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="z. B. -15ab oder 20x^3">
+    <button class="primary" id="check">Prüfen</button>
+  </div>
+  <div class="actions">
+    <button class="secondary" id="hint">Tipp</button>
+    <button class="secondary" id="solution">Lösung zeigen</button>
+    <button class="secondary" id="next">Neue Aufgabe</button>
+  </div>
+  <div class="feedback" id="feedback" aria-live="polite"></div>
+  <div class="tips"><strong>Tipps</strong><br>
+  Zahlen zuerst berechnen · Vorzeichen beachten · gleiche Variablen zusammenfassen.<br>
+  Potenzen kannst du als <strong>x^2</strong> eingeben.</div>
+</section>
+</main>
+<script>
+(()=>{
+const task=document.getElementById('task'), ans=document.getElementById('answer'), fb=document.getElementById('feedback'), score=document.getElementById('score');
+let level=1,good=0,total=0,counted=false,current=null;
+const vars=['x','y','a','b'];
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a, pick=a=>a[rnd(0,a.length-1)];
+function show(c,m){const ks=Object.keys(m).sort();let v='';ks.forEach(k=>{let e=m[k];v+=k+(e>1?'^'+e:'')});if(!v)return ''+c;if(c===1)return v;if(c===-1)return '-'+v;return c+v}
+function pretty(s){return s.replaceAll('^2','²').replaceAll('^3','³')}
+function make(){
+ let d='',c=1,m={};
+ if(level===1){
+   let t=rnd(1,4),v=pick(vars);
+   if(t===1){let a=rnd(2,9),b=rnd(2,9);d=`${a} · ${b}${v}`;c=a*b;m[v]=1}
+   if(t===2){let a=rnd(2,9),b=rnd(2,9);d=`${a}${v} · ${b}`;c=a*b;m[v]=1}
+   if(t===3){let q=rnd(2,9),b=rnd(2,9);d=`${q*b}${v} : ${b}`;c=q;m[v]=1}
+   if(t===4){let a=rnd(2,8),b=rnd(2,8),w=pick(vars);while(w===v)w=pick(vars);d=`${a}${v} · ${b}${w}`;c=a*b;m[v]=1;m[w]=1}
+ }
+ if(level===2){
+   let t=rnd(1,4),v=pick(vars);
+   if(t===1){let a=rnd(2,9),b=rnd(2,9);d=`−${a} · ${b}${v}`;c=-a*b;m[v]=1}
+   if(t===2){let a=rnd(2,9),b=rnd(2,9);d=`−${a} · (−${b}${v})`;c=a*b;m[v]=1}
+   if(t===3){let q=rnd(2,9),b=rnd(2,9);d=`${q*b}${v} : (−${b})`;c=-q;m[v]=1}
+   if(t===4){let a=rnd(2,8),b=rnd(2,8),w=pick(vars);while(w===v)w=pick(vars);d=`(−${a}${v}) · (−${b}${w})`;c=a*b;m[v]=1;m[w]=1}
+ }
+ if(level===3){
+   let t=rnd(1,4),v=pick(vars);
+   if(t===1){let a=rnd(2,7),b=rnd(2,7);d=`${a}${v} · ${b}${v}`;c=a*b;m[v]=2}
+   if(t===2){let a=rnd(2,7),b=rnd(2,7);d=`${a}${v}² · ${b}${v}`;c=a*b;m[v]=3}
+   if(t===3){let q=rnd(2,7),b=rnd(2,7);d=`${q*b}${v}² : ${b}${v}`;c=q;m[v]=1}
+   if(t===4){let a=rnd(2,6),b=rnd(2,6),w=pick(vars);while(w===v)w=pick(vars);d=`−${a}${v} · ${b}${w}`;c=-a*b;m[v]=1;m[w]=1}
+ }
+ current={c,m};task.textContent=d;ans.value='';fb.className='feedback';fb.textContent='';fb.removeAttribute('style');counted=false;setTimeout(()=>ans.focus(),0)
+}
+function parse(s){
+ s=s.toLowerCase().replace(/[−–—]/g,'-').replace(/[·×*\s]/g,'').replace(/²/g,'^2').replace(/³/g,'^3');
+ let mm=s.match(/^([+-]?\d*)(.*)$/);if(!mm)return null;
+ let c=mm[1]===''||mm[1]==='+'?1:mm[1]==='-'?-1:Number(mm[1]);if(!Number.isFinite(c))return null;
+ let r=mm[2],m={},i=0;
+ while(i<r.length){let v=r[i];if(!/[a-z]/.test(v))return null;i++;let e=1;if(r[i]==='^'){i++;let n='';while(i<r.length&&/\d/.test(r[i]))n+=r[i++];if(!n)return null;e=Number(n)}m[v]=(m[v]||0)+e}
+ return {c,m}
+}
+function same(a,b){if(!a||a.c!==b.c)return false;let x=Object.keys(a.m).sort(),y=Object.keys(b.m).sort();if(x.length!==y.length)return false;return x.every((k,i)=>k===y[i]&&a.m[k]===b.m[k])}
+function check(){
+ let p=parse(ans.value);
+ if(!p){fb.className='feedback bad';fb.textContent='Bitte gib einen einzelnen vereinfachten Term ein.';return}
+ if(same(p,current)){fb.className='feedback good';fb.textContent='Richtig.';if(!counted){good++;total++;counted=true}}
+ else{fb.className='feedback bad';fb.textContent='Noch nicht richtig. Prüfe Zahlen, Vorzeichen und Variablen.';if(!counted){total++;counted=true}}
+ score.textContent=`${good} / ${total} richtig`
+}
+document.getElementById('check').onclick=check;document.getElementById('next').onclick=make;
+document.getElementById('hint').onclick=()=>{fb.className='feedback';fb.style.visibility='visible';fb.style.background='var(--soft)';fb.style.color='var(--text)';fb.style.border='1px solid #cbd8f8';fb.textContent='Tipp: Rechne zuerst die Zahlen, dann das Vorzeichen, dann die Variablen.'}
+document.getElementById('solution').onclick=()=>{fb.className='feedback';fb.style.visibility='visible';fb.style.background='#f3f4f7';fb.style.color='var(--text)';fb.style.border='1px solid var(--line)';fb.textContent='Lösung: '+pretty(show(current.c,current.m))}
+ans.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
+document.querySelectorAll('.level').forEach(b=>b.onclick=()=>{level=Number(b.dataset.level);document.querySelectorAll('.level').forEach(x=>x.classList.toggle('active',x===b));make()});
+make();
+})();
+</script>
+</body>
+</html>
