@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ffffff">
+<title>Ausklammern – Übung</title>
+<style>
+:root{
+  --bg:#f6f8fc;--card:#fff;--text:#172033;--muted:#667085;--line:#dfe5ee;
+  --accent:#356ae6;--soft:#edf3ff;--good:#19764a;--goodbg:#eaf8f1;
+  --bad:#a63a3a;--badbg:#fff0f0;--tip:#fff8e7;--tipline:#efd89a
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%
+}
+.wrap{width:min(860px,calc(100% - 28px));margin:auto;padding:28px 0 48px}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+h1{margin:0;font-size:clamp(28px,5vw,42px);line-height:1.08}
+.sub{color:var(--muted);margin-top:8px;font-size:16px;line-height:1.4}
+.score{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;font-weight:750;white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,5vw,34px);box-shadow:0 10px 30px rgba(22,33,56,.08)}
+.label{color:var(--muted);font-size:14px;font-weight:750;margin-bottom:8px}
+.levels{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.level{
+  min-height:48px;border:1px solid var(--line);background:#fff;color:var(--text);
+  border-radius:13px;padding:10px 16px;font-size:16px;font-weight:750;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent
+}
+.level.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.instruction{
+  background:#f7f9fc;border:1px solid var(--line);border-radius:14px;
+  padding:12px 14px;margin-bottom:8px;font-weight:650;line-height:1.4
+}
+.task{
+  min-height:96px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:Georgia,"Times New Roman",serif;font-size:clamp(36px,8vw,60px);
+  margin:10px 0 22px;letter-spacing:.01em
+}
+.row{display:grid;grid-template-columns:1fr auto;gap:10px}
+input{
+  width:100%;min-height:54px;border:2px solid var(--line);border-radius:14px;
+  padding:12px 14px;font-size:20px;color:var(--text);background:#fff;outline:none;
+  -webkit-appearance:none;appearance:none
+}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--soft)}
+button{
+  min-height:52px;border:0;border-radius:14px;font-size:17px;font-weight:750;
+  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent
+}
+.primary{background:var(--accent);color:#fff;padding:0 22px}
+.secondary{background:#eef1f6;color:var(--text);padding:0 18px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.feedback{
+  min-height:62px;margin-top:18px;border-radius:14px;padding:14px 16px;
+  display:flex;align-items:center;line-height:1.45;visibility:hidden
+}
+.feedback.good{visibility:visible;background:var(--goodbg);color:var(--good);border:1px solid #bfe8d3}
+.feedback.bad{visibility:visible;background:var(--badbg);color:var(--bad);border:1px solid #f0caca}
+.feedback.info{visibility:visible;background:var(--soft);color:var(--text);border:1px solid #cbd8f8}
+.explain{
+  margin-top:22px;background:var(--tip);border:1px solid var(--tipline);
+  border-radius:16px;padding:18px 20px;line-height:1.55
+}
+.explain h2{margin:0 0 8px;font-size:20px}
+.explain ol{margin:8px 0 0 20px;padding:0}
+.explain li{margin:7px 0}
+.example{
+  margin-top:14px;background:#fff;border:1px solid var(--tipline);border-radius:12px;
+  padding:14px 16px
+}
+.example .math{font-family:Georgia,"Times New Roman",serif;font-size:22px;line-height:1.55}
+.small{color:var(--muted);font-size:14px;margin-top:10px;line-height:1.45}
+@media(max-width:620px){
+  .top{flex-direction:column}.row{grid-template-columns:1fr}.primary{width:100%}
+  .secondary{flex:1 1 44%}.card{border-radius:18px}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <div>
+      <h1>Ausklammern</h1>
+      <div class="sub">Finde einen gemeinsamen Faktor und schreibe den Term als Produkt.</div>
+    </div>
+    <div class="score" id="score">0 / 0 richtig</div>
+  </div>
+
+  <section class="card">
+    <div class="label">Niveau</div>
+    <div class="levels" role="group" aria-label="Niveau wählen">
+      <button class="level active" data-level="basis">Basis</button>
+      <button class="level" data-level="basis-schwierig">Basis schwierig</button>
+      <button class="level" data-level="vertiefung">Vertiefung</button>
+    </div>
+
+    <div class="instruction" id="instruction"></div>
+
+    <div class="label">Aufgabe</div>
+    <div class="task" id="task" aria-live="polite"></div>
+
+    <label class="label" for="answer">Deine Lösung</label>
+    <div class="row">
+      <input id="answer" type="text" inputmode="text" autocomplete="off" autocapitalize="off"
+             spellcheck="false" placeholder="z. B. 6(3x + 2)">
+      <button class="primary" id="check">Prüfen</button>
+    </div>
+
+    <div class="actions">
+      <button class="secondary" id="hint">Ausführlicher Tipp</button>
+      <button class="secondary" id="solution">Lösung zeigen</button>
+      <button class="secondary" id="next">Neue Aufgabe</button>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+
+    <div class="small">
+      Eingabe z. B. <strong>6(3x+2)</strong> oder <strong>2x(4+3y)</strong>.
+      Potenzen kannst du als <strong>x^2</strong> eingeben.
+    </div>
+
+    <div class="explain">
+      <h2>Wie funktioniert Ausklammern?</h2>
+      <ol>
+        <li><strong>Suche etwas, das in jedem Summanden steckt.</strong> Das kann eine Zahl, eine Variable oder beides sein.</li>
+        <li><strong>Schreibe diesen gemeinsamen Faktor vor die Klammer.</strong></li>
+        <li><strong>Teile jeden ursprünglichen Summanden durch den ausgeklammerten Faktor.</strong> Die Ergebnisse kommen in die Klammer.</li>
+        <li><strong>Kontrolliere durch Ausmultiplizieren.</strong> Wenn wieder der ursprüngliche Term entsteht, stimmt dein Ergebnis.</li>
+      </ol>
+      <div class="example">
+        <div><strong>Beispiel:</strong></div>
+        <div class="math">18x + 12 = 6(3x + 2)</div>
+        <div>Warum? &nbsp;18x : 6 = 3x &nbsp;und&nbsp; 12 : 6 = 2.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+const taskEl=document.getElementById('task');
+const instructionEl=document.getElementById('instruction');
+const ans=document.getElementById('answer');
+const fb=document.getElementById('feedback');
+const score=document.getElementById('score');
+const levelBtns=[...document.querySelectorAll('.level')];
+
+let level='basis', good=0, total=0, counted=false, current=null;
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a}
+function gcdAll(arr){return arr.reduce((g,n)=>gcd(g,n),0)}
+function clone(v){return JSON.parse(JSON.stringify(v))}
+function varKey(v){return Object.keys(v).sort().map(k=>k+'^'+v[k]).join('')}
+function varText(v){return Object.keys(v).sort().map(k=>v[k]===1?k:k+'^'+v[k]).join('')}
+function fmtNum(n){return String(n)}
+function monomialText(c,v){
+  const s=varText(v);
+  if(!s)return fmtNum(c);
+  if(c===1)return s;
+  if(c===-1)return '-'+s;
+  return fmtNum(c)+s
+}
+function pretty(s){return s.replace(/\^2/g,'²').replace(/\^3/g,'³').replace(/\^4/g,'⁴').replace(/-/g,'−')}
+function polyText(terms){
+  let out='';
+  terms.forEach((t,i)=>{
+    const core=pretty(monomialText(Math.abs(t.c),t.v));
+    if(i===0)out+=(t.c<0?'−':'')+core;
+    else out+=t.c<0?' − '+core:' + '+core;
+  });
+  return out
+}
+function factorText(f){return pretty(monomialText(f.c,f.v))}
+function divideTerm(t,f){
+  const v=clone(t.v);
+  for(const k in f.v){
+    v[k]=(v[k]||0)-f.v[k];
+    if(v[k]===0)delete v[k]
+  }
+  return {c:t.c/f.c,v}
+}
+function requiredFactor(terms){
+  const c=gcdAll(terms.map(t=>t.c));
+  const allVars=[...new Set(terms.flatMap(t=>Object.keys(t.v)))];
+  const v={};
+  allVars.forEach(k=>{
+    const exps=terms.map(t=>t.v[k]||0);
+    const m=Math.min(...exps);
+    if(m>0)v[k]=m
+  });
+  return {c,v}
+}
+function buildTask(terms,required,mode){
+  const inside=terms.map(t=>divideTerm(t,required));
+  return {
+    terms,required,inside,mode,
+    display:polyText(terms),
+    solution:`${factorText(required)}(${polyText(inside)})`
+  }
+}
+
+function makeBasis(){
+  const factor=pick([2,3,4,5,6,7,8,9]);
+  const a=rnd(2,9), b=rnd(2,9);
+  const sign=rnd(0,1)===0?1:-1;
+  const terms=[
+    {c:factor*a,v:{x:1}},
+    {c:sign*factor*b,v:{}}
+  ];
+  return buildTask(terms,{c:factor,v:{}},'given');
+}
+function makeBasisHard(){
+  const type=rnd(1,4);
+  if(type===1){
+    const f=rnd(2,6),a=rnd(2,8),b=rnd(2,8);
+    const terms=[{c:f*a,v:{x:1}},{c:-f*b,v:{x:1,y:1}}];
+    return buildTask(terms,{c:f,v:{x:1}},'given');
+  }
+  if(type===2){
+    const f=rnd(2,6),a=rnd(2,8),b=rnd(2,8);
+    const terms=[{c:f*a,v:{a:1,b:1}},{c:f*b,v:{a:1}}];
+    return buildTask(terms,{c:f,v:{a:1}},'given');
+  }
+  if(type===3){
+    const f=rnd(2,6),a=rnd(2,8),b=rnd(2,8);
+    const terms=[{c:-f*a,v:{x:2}},{c:f*b,v:{x:1}}];
+    return buildTask(terms,{c:f,v:{x:1}},'given');
+  }
+  const f=rnd(2,6),a=rnd(2,8),b=rnd(2,8);
+  const terms=[{c:f*a,v:{x:1,y:1}},{c:-f*b,v:{y:1}}];
+  return buildTask(terms,{c:f,v:{y:1}},'given');
+}
+function makeDeep(){
+  const type=rnd(1,4);
+  let terms;
+  if(type===1){
+    const g=rnd(2,8),a=rnd(2,7),b=rnd(2,7);
+    terms=[{c:g*a,v:{x:2}},{c:-g*b,v:{x:1,y:1}}];
+  }else if(type===2){
+    const g=rnd(2,8),a=rnd(2,7),b=rnd(2,7),c=rnd(2,7);
+    terms=[{c:g*a,v:{a:2}},{c:g*b,v:{a:1,b:1}},{c:-g*c,v:{a:1}}];
+  }else if(type===3){
+    const g=rnd(2,8),a=rnd(2,7),b=rnd(2,7);
+    terms=[{c:-g*a,v:{x:2,y:1}},{c:g*b,v:{x:1,y:2}}];
+  }else{
+    const g=rnd(2,8),a=rnd(2,7),b=rnd(2,7),c=rnd(2,7);
+    terms=[{c:g*a,v:{x:2}},{c:-g*b,v:{x:1}},{c:g*c,v:{x:1,y:1}}];
+  }
+  const req=requiredFactor(terms);
+  return buildTask(terms,req,'greatest');
+}
+
+function make(){
+  current=level==='basis'?makeBasis():level==='basis-schwierig'?makeBasisHard():makeDeep();
+  taskEl.textContent=current.display;
+  instructionEl.innerHTML=current.mode==='greatest'
+    ? '<strong>Klammere den größtmöglichen gemeinsamen Faktor aus.</strong>'
+    : `Klammere den Faktor <strong>${factorText(current.required)}</strong> aus.`;
+  ans.value='';
+  fb.className='feedback';fb.textContent='';
+  counted=false;
+  setTimeout(()=>ans.focus(),0)
+}
+
+function parseMonomial(s){
+  s=s.toLowerCase().replace(/[−–—]/g,'-').replace(/[·×*\s]/g,'').replace(/²/g,'^2').replace(/³/g,'^3').replace(/⁴/g,'^4');
+  if(!s)return null;
+  const m=s.match(/^([+-]?\d*)(.*)$/);if(!m)return null;
+  let cs=m[1],rest=m[2],c;
+  if(cs===''||cs==='+')c=1;else if(cs==='-')c=-1;else c=Number(cs);
+  if(!Number.isFinite(c)||c===0)return null;
+  const v={};let i=0;
+  while(i<rest.length){
+    const letter=rest[i];if(!/[a-z]/.test(letter))return null;i++;
+    let e=1;
+    if(rest[i]==='^'){
+      i++;let digits='';
+      while(i<rest.length&&/\d/.test(rest[i]))digits+=rest[i++];
+      if(!digits)return null;e=Number(digits)
+    }
+    v[letter]=(v[letter]||0)+e
+  }
+  return {c,v}
+}
+function parsePoly(s){
+  s=s.toLowerCase().replace(/[−–—]/g,'-').replace(/[·×*\s]/g,'').replace(/²/g,'^2').replace(/³/g,'^3').replace(/⁴/g,'^4');
+  if(!s)return null;
+  s=s.replace(/-/g,'+-');if(s.startsWith('+-'))s=s.slice(1);
+  const chunks=s.split('+').filter(Boolean),terms=[];
+  for(const ch of chunks){
+    const t=parseMonomial(ch);
+    if(!t)return null;
+    terms.push(t)
+  }
+  return terms
+}
+function parseFactored(s){
+  s=s.trim().replace(/[−–—]/g,'-').replace(/[·×*]/g,'').replace(/\s+/g,'');
+  const open=s.indexOf('('), close=s.lastIndexOf(')');
+  if(open<=0||close!==s.length-1)return null;
+  const factor=parseMonomial(s.slice(0,open));
+  const inside=parsePoly(s.slice(open+1,close));
+  if(!factor||!inside||inside.length<2)return null;
+  return {factor,inside}
+}
+function sameVars(a,b){
+  const ka=Object.keys(a).sort(),kb=Object.keys(b).sort();
+  if(ka.length!==kb.length)return false;
+  return ka.every((k,i)=>k===kb[i]&&a[k]===b[k])
+}
+function sameFactor(a,b){return a.c===b.c&&sameVars(a.v,b.v)}
+function termMap(terms){
+  const m={};
+  for(const t of terms){
+    const k=varKey(t.v);m[k]=(m[k]||0)+t.c
+  }
+  for(const k of Object.keys(m))if(m[k]===0)delete m[k];
+  return m
+}
+function expand(factor,inside){
+  return inside.map(t=>({c:factor.c*t.c,v:(()=>{
+    const r=clone(factor.v);
+    for(const k in t.v)r[k]=(r[k]||0)+t.v[k];
+    return r
+  })()}))
+}
+function samePoly(a,b){
+  const ma=termMap(a),mb=termMap(b);
+  const ka=Object.keys(ma).sort(),kb=Object.keys(mb).sort();
+  if(ka.length!==kb.length)return false;
+  return ka.every((k,i)=>k===kb[i]&&ma[k]===mb[k])
+}
+function check(){
+  const p=parseFactored(ans.value);
+  if(!p){
+    fb.className='feedback bad';
+    fb.textContent='Schreibe deine Lösung als Produkt, z. B. 6(3x+2).';
+    return
+  }
+  if(!sameFactor(p.factor,current.required)){
+    fb.className='feedback bad';
+    fb.textContent=current.mode==='greatest'
+      ? `Der Faktor vor der Klammer ist noch nicht der größtmögliche gemeinsame Faktor.`
+      : `Du sollst genau den Faktor ${factorText(current.required)} ausklammern.`;
+    if(!counted){total++;counted=true;score.textContent=`${good} / ${total} richtig`}
+    return
+  }
+  if(samePoly(expand(p.factor,p.inside),current.terms)){
+    fb.className='feedback good';fb.textContent='Richtig. Durch Ausmultiplizieren entsteht wieder der ursprüngliche Term.';
+    if(!counted){good++;total++;counted=true;score.textContent=`${good} / ${total} richtig`}
+  }else{
+    fb.className='feedback bad';
+    fb.textContent='Der Faktor passt, aber die Terme in der Klammer stimmen noch nicht. Teile jeden ursprünglichen Summanden durch den ausgeklammerten Faktor.';
+    if(!counted){total++;counted=true;score.textContent=`${good} / ${total} richtig`}
+  }
+}
+function hintText(){
+  const f=factorText(current.required);
+  const parts=current.terms.map(t=>`${pretty(monomialText(t.c,t.v))} : ${f} = ${pretty(monomialText(divideTerm(t,current.required).c,divideTerm(t,current.required).v))}`);
+  return `1. Gemeinsamer Faktor: ${f}.  2. Teile jeden Summanden durch ${f}:  ${parts.join('   |   ')}.  3. Schreibe ${f} vor die Klammer und die Ergebnisse in die Klammer.`
+}
+
+document.getElementById('check').onclick=check;
+document.getElementById('next').onclick=make;
+document.getElementById('hint').onclick=()=>{
+  fb.className='feedback info';
+  fb.textContent=hintText()
+};
+document.getElementById('solution').onclick=()=>{
+  fb.className='feedback info';
+  fb.textContent='Lösung: '+current.solution
+};
+ans.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
+levelBtns.forEach(btn=>btn.onclick=()=>{
+  level=btn.dataset.level;
+  levelBtns.forEach(b=>b.classList.toggle('active',b===btn));
+  make()
+});
+make();
+})();
+</script>
+</body>
+</html>
