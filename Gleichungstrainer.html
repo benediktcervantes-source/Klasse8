@@ -1,0 +1,136 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Gleichungen lösen</title><style>
+:root{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#182638;background:#f5f6f8}*{box-sizing:border-box}body{margin:0}main{max-width:760px;margin:36px auto;padding:0 18px 50px}h1{font-size:1.9rem;margin:0 0 6px}h2{font-size:1.18rem;margin:0 0 12px}p{line-height:1.55}.muted{color:#5b6674}.tabs{display:flex;gap:8px;margin:24px 0;flex-wrap:wrap}button{font:inherit;cursor:pointer;border:1px solid #b8c3d0;border-radius:8px;background:white;padding:10px 15px;color:#182638}button.active,button.primary{background:#164d7d;color:white;border-color:#164d7d}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #e9b353;outline-offset:2px}.card{background:white;border:1px solid #dce2e9;border-radius:13px;padding:25px}.tag{font-size:.85rem;color:#536b83;font-weight:650}.math{font-family:Cambria,'Times New Roman',serif;font-size:clamp(1.65rem,4.7vw,2.1rem);line-height:1.4}.problem{margin:20px 0 12px}.step{padding:17px 0;border-top:1px solid #e5e9ee}.stephead{font-size:.92rem;color:#536170;margin:0 0 8px}.step .math{display:block;margin:7px 0}.entry{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}input{font:inherit;font-family:Cambria,'Times New Roman',serif;font-size:1.8rem;width:min(100%,340px);min-width:220px;padding:10px 13px;border:1px solid #9baec0;border-radius:8px}input::placeholder{font-size:1.25rem;color:#9ba7b3}.feedback{font-size:.94rem;margin:10px 0 0}.ok{color:#147044}.error{color:#a2342c}.help{margin-top:20px;border:1px solid #d9e0e8;border-radius:9px;padding:0 14px}summary{cursor:pointer;padding:13px 0;font-weight:600}.helpbody{padding:0 0 14px;color:#344457;line-height:1.6}.helpbody p{margin:8px 0}.actions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:20px}.small{font-size:.88rem}.hidden{display:none!important}.intro{border-bottom:1px solid #e5e9ee;padding-bottom:18px;margin-bottom:18px}.example{border-left:3px solid #8aaac7;padding-left:15px;margin:14px 0}.example div{margin:5px 0}.finished{margin-top:14px;font-weight:650;color:#147044}@media(max-width:520px){.card{padding:18px}.actions{flex-wrap:wrap}}
+</style></head><body><main><h1>Gleichungen lösen</h1><p class="muted">Unbegrenzt üben – mit neuen Gleichungen nach jeder Aufgabe. Brüche kannst du als 5/2 eingeben.</p><nav class="tabs" aria-label="Niveau wählen"><button id="tab1" class="active" type="button">Niveau 1 · Ohne Klammern</button><button id="tab2" type="button">Niveau 2 · Mit Klammern</button></nav><section class="card"><div id="intro2" class="intro hidden"><div class="tag">NEUES NIVEAU</div><h2>Die Strategie wird erweitert</h2><p>Du kennst bereits die Strategie: Bringe alle Variablen auf eine Seite und alle Zahlen auf die andere. Jetzt steht auf einer Seite eine <strong>Klammer</strong>.</p><p><strong>Neuer erster Schritt:</strong> Löse die Klammer auf. Multipliziere die Zahl vor der Klammer mit <strong>jedem</strong> Term in der Klammer. Danach gehst du wie gewohnt vor.</p><div class="example"><div class="math">2(x + 3) = x + 9</div><div class="math">2x + 6 = x + 9</div><div class="small muted">Klammer aufgelöst – jetzt die bekannte Strategie anwenden.</div></div><button class="primary" id="start2" type="button">Übungen starten</button></div><div id="trainer"><div class="tag" id="counter"></div><div id="problem" class="math problem"></div><div id="steps"></div><div id="complete" class="finished hidden">Richtig gelöst!</div><details class="help" id="help"><summary>Hilfe anzeigen</summary><div class="helpbody" id="helpbody"></div></details><div class="actions"><span id="progress" class="muted small"></span><button id="next" type="button">Nächste Aufgabe</button></div></div></section></main><script>
+'use strict';
+const $=id=>document.getElementById(id);
+const rand=(min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+const pick=arr=>arr[rand(0,arr.length-1)];
+let level=1,started2=false,phase=0,accepted=[],currentTask=null;
+let count={1:0,2:0},history={1:[],2:[]};
+function generate(lvl){
+  let q,key,tries=0;
+  do{
+    // Construct the equation backwards from a prescribed solution.
+    const den=pick([1,1,1,1,2,2,3,4]);
+    const numerator=rand(-10,10);
+    if(numerator===0)continue;
+    const solution=numerator/den;
+    if(lvl===1){
+      const diff=pick([-6,-5,-4,-3,-2,-1,1,2,3,4,5,6]);
+      if(!Number.isInteger(diff*solution))continue;
+      const c=rand(-5,5),a=c+diff;
+      if(a===0||c===0)continue;
+      const b=rand(-9,9),d=b+diff*solution;
+      if(!Number.isInteger(d)||Math.abs(d)>24)continue;
+      q={a,b,c,d};
+    }else{
+      const k=pick([2,2,3,3,4,-2,-3]);
+      const m=pick([-3,-2,-1,1,2,3]);
+      const c=rand(-5,5),diff=k*m-c;
+      if(diff===0||!Number.isInteger(diff*solution))continue;
+      const n=rand(-6,6),d=k*n+diff*solution;
+      if(!Number.isInteger(d)||Math.abs(d)>28)continue;
+      q={k,m,n,c,d};
+    }
+    key=JSON.stringify(q);
+    if(!history[lvl].includes(key))break;
+  }while(++tries<1000);
+  if(!q) return lvl===1?{a:3,b:2,c:1,d:5}:{k:2,m:1,n:3,c:1,d:9};
+  history[lvl].push(key);
+  if(history[lvl].length>80)history[lvl].shift();
+  return q;
+}
+function newTask(){currentTask=generate(level);phase=0;accepted=[];render()}
+function num(v){return String(v).replace('-','−')}
+function expr(a,b){let t=a===0?'':a===1?'x':a===-1?'−x':num(a)+'x';if(b!==0)t+=(t?(b<0?' − ':' + '):(b<0?'−':''))+Math.abs(b);return t||'0'}
+function current(){return currentTask}
+function co(q){return level===1?[q.a,q.b,q.c,q.d]:[q.k*q.m,q.k*q.n,q.c,q.d]}
+function original(q){return level===1?expr(q.a,q.b)+' = '+expr(q.c,q.d):num(q.k)+'('+expr(q.m,q.n)+') = '+expr(q.c,q.d)}
+function phases(){return level===1?['Sammle zuerst alle Variablen oder alle Zahlen auf einer Seite.','Trenne Variablen und Zahlen. Wenn x bereits allein steht, kannst du direkt die Lösung eingeben.','Gib die vollständige Lösung ein.']:['Löse die Klammer auf.','Sammle zuerst alle Variablen oder alle Zahlen auf einer Seite.','Trenne Variablen und Zahlen. Wenn x bereits allein steht, kannst du direkt die Lösung eingeben.','Gib die vollständige Lösung ein.']}
+function normalize(s){return s.replace(/\s/g,'').replaceAll('−','-').replaceAll('–','-').replaceAll(',','.').replaceAll('X','x').replaceAll('·','*')}
+function rational(v){
+ if(!/^\d+(?:\.\d+)?(?:\/\d+(?:\.\d+)?)?$/.test(v))return null;
+ const pieces=v.split('/');const numerator=Number(pieces[0]);const denominator=pieces.length===2?Number(pieces[1]):1;
+ return denominator===0?null:numerator/denominator;
+}
+function side(s){
+ s=normalize(s).replaceAll('*','');
+ if(!s||/[^0-9x+\-./]/.test(s))return null;
+ if(!/^[+-]/.test(s))s='+'+s;
+ const parts=s.match(/[+-][^+-]+/g);
+ if(!parts||parts.join('')!==s)return null;
+ let a=0,b=0;
+ for(const part of parts){
+  const sign=part[0]==='-'?-1:1,v=part.slice(1);
+  if(v.includes('x')){
+   if(!v.endsWith('x')||v.indexOf('x')!==v.length-1)return null;
+   const coefficient=v.slice(0,-1);
+   const n=coefficient===''?1:rational(coefficient);
+   if(n===null)return null;
+   a+=sign*n;
+  }else{
+   const n=rational(v);if(n===null)return null;
+   b+=sign*n;
+  }
+ }
+ return [a,b];
+}
+function parse(s){let p=s.split('=');if(p.length!==2)return null;let l=side(p[0]),r=side(p[1]);return l&&r?[...l,...r]:null}
+function near(a,b){return Math.abs(a-b)<1e-8}
+function same(g,t){return g.every((v,i)=>near(v,t[i]))}
+function nearZero(v){return near(v,0)}
+function separated(g,t){
+ return (nearZero(g[1])&&nearZero(g[2])&&!nearZero(g[0])) ||
+        (nearZero(g[0])&&nearZero(g[3])&&!nearZero(g[2]));
+}
+function hasCollected(g,t){
+ // At least one side has had all variables or all constants removed.
+ return nearZero(g[0])||nearZero(g[2])||nearZero(g[1])||nearZero(g[3]);
+}
+function sameOrEquivalent(g,t){return equivalent(g,t)&&!same(g,t)}
+function equivalent(g,t){return near(g[0]-g[2],t[0]-t[2])&&near(g[3]-g[1],t[3]-t[1])}
+function isUnitSolved(g,t){return finalCheck(g,t)}
+function finalCheck(g,t){let [a,b,c,d]=t;if(near(a-c,0))return false;const v=(d-b)/(a-c);return (near(g[0],1)&&near(g[1],0)&&near(g[2],0)&&near(g[3],v))||(near(g[0],0)&&near(g[1],v)&&near(g[2],1)&&near(g[3],0))}
+function render(){
+ $('tab1').classList.toggle('active',level===1);
+ $('tab2').classList.toggle('active',level===2);
+ $('intro2').classList.toggle('hidden',level!==2||started2);
+ $('trainer').classList.toggle('hidden',level===2&&!started2);
+ $('counter').textContent=`Niveau ${level} · Aufgabe ${count[level]+1}`;
+ $('problem').textContent=original(current());
+ $('progress').textContent=`${count[level]} Aufgaben gelöst`;
+ $('complete').classList.add('hidden');$('help').open=false;
+ drawSteps();
+}
+function drawSteps(){const area=$('steps');area.replaceChildren();let labels=phases();accepted.forEach((value,i)=>{let block=document.createElement('div');block.className='step';let caption=document.createElement('div');caption.className='stephead';caption.textContent=`Schritt ${i+1} · richtig`;let line=document.createElement('div');line.className='math';line.textContent=value;block.append(caption,line);area.append(block)});if(phase>=labels.length){$('complete').classList.remove('hidden');$('helpbody').textContent='Du hast die Gleichung vollständig gelöst.';return}let section=document.createElement('div');section.className='step';let title=document.createElement('div');title.className='stephead';title.textContent=`Schritt ${phase+1} von ${labels.length}`;let prompt=document.createElement('p');prompt.textContent=labels[phase];let entry=document.createElement('div');entry.className='entry';let input=document.createElement('input');input.type='text';input.id='stepInput';input.autocomplete='off';input.spellcheck=false;input.setAttribute('aria-label','Gleichung eingeben');input.placeholder=phase===labels.length-1?'z. B. x = 5/2':'z. B. 2x + 2 = 5';let button=document.createElement('button');button.type='button';button.className='primary';button.textContent='Prüfen';button.addEventListener('click',check);input.addEventListener('keydown',e=>{if(e.key==='Enter')check()});let feedback=document.createElement('div');feedback.id='feedback';feedback.className='feedback';feedback.setAttribute('role','status');entry.append(input,button);section.append(title,prompt,entry,feedback);area.append(section);updateHelp();input.focus()}
+function finish(){count[level]++;$('progress').textContent=`${count[level]} Aufgaben gelöst`}
+function check(){
+ const input=$('stepInput'),feedback=$('feedback'),g=parse(input.value);
+ if(!g){feedback.className='feedback error';feedback.textContent='Schreibe eine vollständige Gleichung mit =. Brüche wie 5/2 sind erlaubt.';return}
+ const t=co(current()),labels=phases(),last=phase===labels.length-1;
+ const bracket=level===2&&phase===0;
+ const collect=(level===1&&phase===0)||(level===2&&phase===1);
+ const solvedNow=finalCheck(g,t);
+ let valid=false;
+ if(bracket)valid=same(g,t);
+ else if(last)valid=solvedNow;
+ else if(collect)valid=solvedNow||(sameOrEquivalent(g,t)&&hasCollected(g,t));
+ else valid=solvedNow||(sameOrEquivalent(g,t)&&separated(g,t));
+ if(!valid){
+   feedback.className='feedback error';
+   feedback.textContent=last?'Prüfe deine Lösung. Schreibe x = … (Brüche wie 5/2 sind möglich).':bracket?'Multipliziere die Zahl vor der Klammer mit beiden Termen.':collect?'Bringe alle x-Terme oder alle Zahlen auf eine Seite. Auch eine direkte Lösung ist erlaubt.':'Trenne die x-Terme und Zahlen. Du kannst auch direkt die Lösung eingeben.';
+   return;
+ }
+ accepted.push(input.value.trim());
+ if(!bracket&&solvedNow){phase=labels.length;drawSteps();finish();return}
+ if(!bracket&&separated(g,t))phase=labels.length-1;
+ else phase++;
+ drawSteps();
+}
+function updateHelp(){let t=co(current()),[a,b,c,d]=t;let text='';if(level===2&&phase===0)text='Multipliziere die Zahl vor der Klammer mit jedem Term darin. Die andere Seite bleibt unverändert.';else if(phase===phases().length-1)text='Teile beide Seiten durch den Vorfaktor von x. Schreibe anschließend die vollständige Gleichung x = …';else if(phase===phases().length-2)text='Bringe alle x-Terme auf eine Seite und alle Zahlen auf die andere. Du erhältst eine Gleichung der Form ax = b.';else text='Du kannst zuerst alle x-Terme sammeln oder zuerst alle Zahlen. Beide Wege sind richtig. Führe auf beiden Seiten dieselbe Umformung durch.';if(!near(a-c,0)&&phase===phases().length-1)text+=' Kontrolliere dein Ergebnis durch Einsetzen in die Ausgangsgleichung.';$('helpbody').textContent=text}
+$('tab1').addEventListener('click',()=>{level=1;newTask()});
+$('tab2').addEventListener('click',()=>{level=2;newTask()});
+$('start2').addEventListener('click',()=>{started2=true;render()});
+$('next').addEventListener('click',newTask);
+newTask();
+</script></body></html>
